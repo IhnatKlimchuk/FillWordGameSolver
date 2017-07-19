@@ -12,6 +12,12 @@
             this.Index = index;
         }
 
+        public GamePoint(GameInformation gameInformation, int xHorizontal, int yVertical)
+            : this(gameInformation, gameInformation.HorizontalDimension * yVertical + xHorizontal)
+        {
+
+        }
+
         public override string ToString()
         {
             return new string(GameInformation.FieldLetters[Index], 1);
