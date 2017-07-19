@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FillWordGameSolver\FillWordGameSolver.csproj" />
+    <ProjectReference Include="..\..\src\FillWordGameSolver\FillWordGameSolver.csproj" />
   </ItemGroup>
 
   <ItemGroup>
