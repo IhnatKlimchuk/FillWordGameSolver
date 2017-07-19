@@ -12,11 +12,13 @@ namespace FillWordGameSolver
 
         public ImmutableSortedSet<GameWord> Words { get; private set; }
 
-        private BitArray OccupationField { get; set; }
+        public BitArray OccupationField { get; set; }
 
         public GameState(GameInformation gameInformation) : this(gameInformation, null)
         {
         }
+
+        public bool IsFinal { get; set; }
 
         public GameState(GameInformation gameInformation, IEnumerable<GameWord> words)
         {

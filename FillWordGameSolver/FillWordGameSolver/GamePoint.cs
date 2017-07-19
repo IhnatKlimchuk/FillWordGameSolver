@@ -17,7 +17,7 @@
         {
 
         }
-
+        
         public override string ToString()
         {
             return new string(GameInformation.FieldLetters[Index], 1);

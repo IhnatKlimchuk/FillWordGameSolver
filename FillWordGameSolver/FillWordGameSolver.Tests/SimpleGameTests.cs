@@ -23,7 +23,8 @@ namespace FillWordGameSolver.Tests
                 'e', 'l', 'd'
             };
             GameInformation gameInfo = new GameInformation(gameField, 3, 3);
-            GameSolver gameSolver = new GameSolver(null, gameInfo);
+            SimpleWordStateMachine wordStateMachine = new SimpleWordStateMachine(definedWords);
+            GameSolver gameSolver = new GameSolver(wordStateMachine, gameInfo);
             GameSolution solution = gameSolver.SolveGame();
             Assert.True(solution.IsSolved);
 
