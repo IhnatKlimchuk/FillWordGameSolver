@@ -1,102 +1,103 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FillWordGameSolver
 {
-    public class GameSolver
+    public class GameSolver : IGameSolver
     {
-        private IWordStateMachine wordStateMachine;
-
-        public GameInformation GameInformation { get; private set; }
+        private IWordStateMachineFactory wordStateMachineFactory;
         
-        public GameSolver(IWordStateMachine wordStateMachine, GameInformation gameInformation)
+        public GameSolver(IWordStateMachineFactory wordStateMachineFactory)
         {
-            this.wordStateMachine = wordStateMachine;
-            this.GameInformation = gameInformation;
+            this.wordStateMachineFactory = wordStateMachineFactory;
         }
-        
-        public GameSolution SolveGame()
-        {
-            HashSet<GameState> allStates = new HashSet<GameState>();
-            Queue<GameState> statesToProcess = new Queue<GameState>();
-            var initialGameState = new GameState(GameInformation);
 
-            allStates.Add(initialGameState);
-            statesToProcess.Enqueue(initialGameState);
-            while (statesToProcess.Count != 0)
+        public async Task<GameSolution> SolveGameAsync(GameInformation gameInformation, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return await SolveGameAsync(CreateInitialGameState(gameInformation), cancellationToken);
+        }
+
+        public async Task<GameSolution> SolveGameAsync(GameState initialGameState, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return await Task.Run(() =>
             {
-                var gameState = statesToProcess.Dequeue();
-                var newStates = CreateGameStates(gameState);
-                foreach (var state in newStates)
+                HashSet<GameState> gameStates = new HashSet<GameState>();
+                Queue<GameState> gameStatesToProcess = new Queue<GameState>();
+                IWordStateMachine wordStateMachine = this.wordStateMachineFactory.GetWordStateMachine();
+
+                gameStates.Add(initialGameState);
+                gameStatesToProcess.Enqueue(initialGameState);
+
+                while (gameStatesToProcess.Count != 0)
                 {
-                    if (allStates.Add(state))
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var currentGameState = gameStatesToProcess.Dequeue();
+                    foreach (var newGameState in CreateGameStates(currentGameState, wordStateMachine))
                     {
-                        statesToProcess.Enqueue(state);
+                        if (gameStates.Add(newGameState))
+                        {
+                            gameStatesToProcess.Enqueue(newGameState);
+                        }
+                    }
+                }
+                return new GameSolution(gameStates.Where(gameState => IsGameStateFinal(gameState)));
+            });
+        }
+
+        private IEnumerable<GameState> CreateGameStates(GameState gameState, IWordStateMachine wordStateMachine)
+        {
+            for (int index = 0; index < gameState.OccupationField.Length; index++)
+            {
+                GamePoint startGamePoint = new GamePoint(gameState.GameInformation, index);
+                wordStateMachine.Reset();
+                if (wordStateMachine.CanNavigateForward(startGamePoint.ToChar()) && !gameState.OccupationField[startGamePoint.Index])
+                {
+                    TemporaryGameState temporaryGameState = new TemporaryGameState(gameState, startGamePoint, wordStateMachine);
+                    foreach (var newGameState in CreateGameStates(temporaryGameState))
+                    {
+                        yield return newGameState;
                     }
                 }
             }
-            var solutionState = allStates.FirstOrDefault(t => t.IsFinal);
-            return new GameSolution(solutionState);
         }
 
-        public List<GameState> CreateGameStates(GameState gameState)
+        private IEnumerable<GameState> CreateGameStates(TemporaryGameState temporaryGameState)
         {
-            bool filled = true;
-            List<GameState> newGameStates = new List<GameState>();
-            for (int i = 0; i < GameInformation.HorizontalDimension; i++)
+            foreach (NavigateDirection navigateDirection in Enum.GetValues(typeof(NavigateDirection)))
             {
-                for (int j = 0; j < GameInformation.VerticalDimension; j++)
+                if (temporaryGameState.CanNavigate(navigateDirection))
                 {
-                    GamePoint startGamePoint = new GamePoint(GameInformation, i, j);
-                    filled &= gameState.OccupationField[startGamePoint.Index];
-                    wordStateMachine.Reset();
-                    if (wordStateMachine.CanNavigateForward(startGamePoint.ToChar()) && !gameState.OccupationField[startGamePoint.Index])
+                    temporaryGameState.Navigate(navigateDirection);
+                    foreach (var newGameState in CreateGameStates(temporaryGameState))
                     {
-                        TempGameState tempGameState = new TempGameState(gameState, startGamePoint, wordStateMachine);
-                        newGameStates.AddRange(CreateGameStates(tempGameState));
+                        yield return newGameState;
                     }
+                    temporaryGameState.NavigateBack();
                 }
             }
-            gameState.IsFinal = filled;
-            return newGameStates;
+
+            if (temporaryGameState.IsWordExist())
+            {
+                yield return temporaryGameState.GetNewGameState();
+            }
         }
 
-        private List<GameState> CreateGameStates(TempGameState tempGameState)
+        private GameState CreateInitialGameState(GameInformation gameInformation)
         {
-            List<GameState> newGameStates = new List<GameState>();
-            if (tempGameState.CanNavigateLeft())
-            {
-                tempGameState.NavigateLeft();
-                newGameStates.AddRange(CreateGameStates(tempGameState));
-                tempGameState.NavigateBack();
-            }
-            if (tempGameState.CanNavigateUp())
-            {
-                tempGameState.NavigateUp();
-                newGameStates.AddRange(CreateGameStates(tempGameState));
-                tempGameState.NavigateBack();
-            }
-            if (tempGameState.CanNavigateRight())
-            {
-                tempGameState.NavigateRight();
-                newGameStates.AddRange(CreateGameStates(tempGameState));
-                tempGameState.NavigateBack();
-            }
-            if (tempGameState.CanNavigateDown())
-            {
-                tempGameState.NavigateDown();
-                newGameStates.AddRange(CreateGameStates(tempGameState));
-                tempGameState.NavigateBack();
-            }
+            return new GameState(gameInformation);
+        }
 
-            if (tempGameState.IsWordExist())
+        private bool IsGameStateFinal(GameState gameState)
+        {
+            bool result = true;
+            for (int i = 0; i < gameState.OccupationField.Length; i++)
             {
-                newGameStates.Add(tempGameState.GetNewGameState());
+                result &= gameState.OccupationField[i];
             }
-
-            return newGameStates;
+            return result;
         }
     }
 }

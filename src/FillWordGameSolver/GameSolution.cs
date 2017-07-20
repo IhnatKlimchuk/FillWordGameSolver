@@ -1,19 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace FillWordGameSolver
 {
     public class GameSolution
     {
-        public bool IsSolved { get; private set; }
-
-        public GameState FinalGameState { get; private set; }
-
-        public GameSolution(GameState finalGameState)
+        public GameSolution(IEnumerable<GameState> finalGameStates)
         {
-            this.FinalGameState = finalGameState;
-            this.IsSolved = finalGameState != null;
+            if (finalGameStates == null)
+            {
+                this.GameStates = Enumerable.Empty<GameState>();
+            }
+            else
+            {
+                this.GameStates = finalGameStates.Where(t => t != null).ToList();
+            }
+            this.IsSolved = this.GameStates.Any();
         }
+
+        public IEnumerable<GameState> GameStates { get; private set; }
+
+        public bool IsSolved { get; private set; }
     }
 }

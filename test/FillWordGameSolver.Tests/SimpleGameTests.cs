@@ -16,7 +16,6 @@ namespace FillWordGameSolver.Tests
         [Fact]
         public void SimpleGameCanBeSolved()
         {
-            string[] definedWords = new string[] { "word", "field", "work", "rock", "road" };
             char[] gameField = new char[]
             {
                 'w', 'o', 'r',
@@ -26,12 +25,8 @@ namespace FillWordGameSolver.Tests
             GameInformation gameInfo = new GameInformation(gameField, 3, 3);
             ConcurrentWordStateMachine concurrentWordStateMachine = new ConcurrentWordStateMachine();
             concurrentWordStateMachine.AddWords("./Words/English.txt");
-            /*foreach (var word in definedWords)
-            {
-                concurrentWordStateMachine.AddWord(word);
-            }*/
-            ParallelGameSolver gameSolver = new ParallelGameSolver(concurrentWordStateMachine, gameInfo);
-            GameSolution solution = gameSolver.SolveGame(CancellationToken.None);
+            GameSolver gameSolver = new GameSolver(concurrentWordStateMachine);
+            GameSolution solution = gameSolver.SolveGameAsync(gameInfo).Result;
             Assert.True(solution.IsSolved);
 
             GameWord[] gameWords = new GameWord[]
@@ -56,7 +51,8 @@ namespace FillWordGameSolver.Tests
             };
             
             GameState expectedGameState = new GameState(gameInfo, gameWords);
-            Assert.True(expectedGameState.Equals(solution.FinalGameState));
+            Assert.Contains(expectedGameState, solution.GameStates);
+            Assert.Single(solution.GameStates);
         }
     }
 }

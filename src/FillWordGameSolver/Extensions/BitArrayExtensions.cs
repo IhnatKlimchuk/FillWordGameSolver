@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace FillWordGameSolver.Extensions
 {
-    public static class BitArrayExtensions
+    internal static class BitArrayExtensions
     {
         static FieldInfo _internalArrayGetter = GetInternalArrayGetter();
 

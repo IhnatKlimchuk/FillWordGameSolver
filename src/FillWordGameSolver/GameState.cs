@@ -8,22 +8,16 @@ namespace FillWordGameSolver
 {
     public class GameState
     {
-        public GameInformation GameInformation { get; private set; }
-
-        public ImmutableSortedSet<GameWord> Words { get; private set; }
-
-        internal BitArray OccupationField { get; set; }
-
         public GameState(GameInformation gameInformation) : this(gameInformation, null)
         {
-        }
 
-        public bool IsFinal { get; set; }
+        }
 
         public GameState(GameInformation gameInformation, IEnumerable<GameWord> words)
         {
-            this.OccupationField = new BitArray(gameInformation.HorizontalDimension * gameInformation.VerticalDimension, false);
+            this.OccupationField = new BitArray(gameInformation.FieldLetters.Length, false);
             this.GameInformation = gameInformation;
+
             if (words != null)
             {
                 var listBuilder = ImmutableSortedSet.CreateBuilder<GameWord>();
@@ -42,7 +36,29 @@ namespace FillWordGameSolver
                 this.Words = ImmutableSortedSet<GameWord>.Empty;
             }
         }
-        
+
+        public GameInformation GameInformation { get; private set; }
+
+        public ImmutableSortedSet<GameWord> Words { get; private set; }
+
+        internal BitArray OccupationField { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            var another = obj as GameState;
+            if (another == null || this.Words.Count != another.Words.Count)
+            {
+                return false;
+            }
+
+            bool result = true;
+            for (int i = 0; i < this.Words.Count; i++)
+            {
+                result &= this.Words[i].Equals(another.Words[i]);
+            }
+            return result;
+        }
+
         public override int GetHashCode()
         {
             UInt32 hash = 17;
@@ -62,22 +78,6 @@ namespace FillWordGameSolver
                 bitsRemaining -= 32;
             }
             return (int)hash;
-        }
-
-        public override bool Equals(object obj)
-        {
-            var another = obj as GameState;
-            if (another == null || this.Words.Count != another.Words.Count)
-            {
-                return false;
-            }
-
-            bool result = true;
-            for (int i = 0; i < this.Words.Count; i++)
-            {
-                result &= this.Words[i].Equals(another.Words[i]);
-            }
-            return result;
         }
     }
 }
