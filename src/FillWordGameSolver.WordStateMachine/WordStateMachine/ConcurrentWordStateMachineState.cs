@@ -11,12 +11,15 @@ namespace FillWordGameSolver
             this.Letter = letter;
         }
 
-        public char Letter { get; set; }
+        public ConcurrentWordStateMachineState(ConcurrentWordStateMachineState previousState)
+        {
+            this.PreviousState = previousState;
+            this.LetterDictionary = new Dictionary<char, ConcurrentWordStateMachineState>();
+        }
 
         public bool IsWordEnd { get; set; }
-
-        public ConcurrentWordStateMachineState PreviousState { get; private set; }
-
+        public char Letter { get; private set; }
         public Dictionary<char, ConcurrentWordStateMachineState> LetterDictionary { get; private set; }
+        public ConcurrentWordStateMachineState PreviousState { get; private set; }
     }
 }

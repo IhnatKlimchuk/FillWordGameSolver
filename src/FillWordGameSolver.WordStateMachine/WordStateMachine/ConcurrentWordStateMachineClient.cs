@@ -1,36 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace FillWordGameSolver.WordStateMachine.WordStateMachine
+﻿namespace FillWordGameSolver
 {
-    public class ConcurrentWordStateMachineClient
+    public class ConcurrentWordStateMachineClient : IWordStateMachine
     {
-        private ConcurrentWordStateMachine stateMachine;
-
         private ConcurrentWordStateMachineState currentState;
+        private ConcurrentWordStateMachine stateMachine;
 
         public ConcurrentWordStateMachineClient(ConcurrentWordStateMachine stateMachine)
         {
-            stateMachine.StateMachineLock.EnterReadLock();
-
             this.stateMachine = stateMachine;
             this.currentState = stateMachine.InitialState;
-        }
-
-        public void Reset()
-        {
-            currentState = stateMachine.InitialState;
-        }
-
-        public bool CanNavigate(char letter)
-        {
-            return currentState.LetterDictionary.ContainsKey(letter);
-        }
-
-        public void NavigateForward(char letter)
-        {
-            currentState = currentState.LetterDictionary[letter];
         }
 
         public bool CanNavigateBack()
@@ -38,9 +16,34 @@ namespace FillWordGameSolver.WordStateMachine.WordStateMachine
             return currentState.PreviousState != null;
         }
 
+        public bool CanNavigateForward(char letter)
+        {
+            return currentState.LetterDictionary.ContainsKey(letter);
+        }
+
+        public bool IsWordExist()
+        {
+            return currentState.IsWordEnd;
+        }
+
+        public bool IsWordPartExist()
+        {
+            return currentState.LetterDictionary.Count > 0;
+        }
+
         public void NavigateBack()
         {
             currentState = currentState.PreviousState;
+        }
+
+        public void NavigateForward(char letter)
+        {
+            currentState = currentState.LetterDictionary[letter];
+        }
+
+        public void Reset()
+        {
+            currentState = stateMachine.InitialState;
         }
     }
 }

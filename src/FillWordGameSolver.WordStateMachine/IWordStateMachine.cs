@@ -1,17 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace FillWordGameSolver
+﻿namespace FillWordGameSolver
 {
     public interface IWordStateMachine
     {
-        void ResetToInitialState();
-        bool IsWordExist();
-        bool IsWordPartExist();
-        bool CanNavigateForward(char letter);
-        void NavigateForward(char letter);
         bool CanNavigateBack();
+
+        bool CanNavigateForward(char letter);
+
+        bool IsWordExist();
+
+        bool IsWordPartExist();
+
         void NavigateBack();
+
+        void NavigateForward(char letter);
+
+        void Reset();
     }
 }

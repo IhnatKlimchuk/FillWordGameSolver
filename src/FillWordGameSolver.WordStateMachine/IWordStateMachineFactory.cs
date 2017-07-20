@@ -4,8 +4,8 @@ using System.Text;
 
 namespace FillWordGameSolver
 {
-    public interface IWordStateMachineCore
+    public interface IWordStateMachineFactory
     {
-        
+        IWordStateMachine GetWordStateMachine();
     }
 }

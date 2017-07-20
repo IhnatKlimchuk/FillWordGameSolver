@@ -1,18 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
+using System.IO;
 
 namespace FillWordGameSolver
 {
-    public class ConcurrentWordStateMachine
+    public class ConcurrentWordStateMachine : IWordStateMachineFactory
     {
         public ConcurrentWordStateMachine()
         {
             InitialState = new ConcurrentWordStateMachineState(null);
             StateMachineLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
         }
-
+        
         internal ConcurrentWordStateMachineState InitialState { get; private set; }
 
         internal ReaderWriterLockSlim StateMachineLock { get; private set; }
@@ -22,34 +21,68 @@ namespace FillWordGameSolver
             try
             {
                 StateMachineLock.EnterWriteLock();
-                ConcurrentWordStateMachineState currentState = InitialState;
-                foreach (var letter in FormatWord(word))
+                return AddWordInternal(word);
+            }
+            finally
+            {
+                StateMachineLock.ExitWriteLock();
+            }
+        }
+
+        private bool AddWordInternal(string word)
+        {
+            ConcurrentWordStateMachineState currentState = InitialState;
+            foreach (var letter in FormatWord(word))
+            {
+                if (currentState.LetterDictionary.ContainsKey(letter))
                 {
-                    if (currentState.LetterDictionary.ContainsKey(letter))
-                    {
-                        currentState = currentState.LetterDictionary[letter];
-                    }
-                    else
-                    {
-                        ConcurrentWordStateMachineState newState = new ConcurrentWordStateMachineState(currentState, letter);
-                        currentState.LetterDictionary[letter] = newState;
-                        currentState = newState;
-                    }
-                }
-                if (currentState.IsWordEnd)
-                {
-                    return false;
+                    currentState = currentState.LetterDictionary[letter];
                 }
                 else
                 {
-                    currentState.IsWordEnd = true;
-                    return true;
+                    ConcurrentWordStateMachineState newState = new ConcurrentWordStateMachineState(currentState, letter);
+                    currentState.LetterDictionary[letter] = newState;
+                    currentState = newState;
+                }
+            }
+            if (currentState.IsWordEnd)
+            {
+                return false;
+            }
+            else
+            {
+                currentState.IsWordEnd = true;
+                return true;
+            }
+        }
+
+        public void AddWords(string filePath)
+        {
+            try
+            {
+                StateMachineLock.EnterWriteLock();
+
+                string line;
+                using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                {
+                    using (StreamReader streamReader = new StreamReader(fileStream))
+                    {
+                        while ((line = streamReader.ReadLine()) != null)
+                        {
+                            AddWordInternal(line);
+                        }
+                    }
                 }
             }
             finally
             {
                 StateMachineLock.ExitWriteLock();
             }
+        }
+
+        public IWordStateMachine GetWordStateMachine()
+        {
+            return new ConcurrentWordStateMachineClient(this);
         }
 
         public bool RemoveWord(string word)

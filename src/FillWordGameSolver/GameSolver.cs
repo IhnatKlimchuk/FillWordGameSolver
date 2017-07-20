@@ -51,7 +51,7 @@ namespace FillWordGameSolver
                 {
                     GamePoint startGamePoint = new GamePoint(GameInformation, i, j);
                     filled &= gameState.OccupationField[startGamePoint.Index];
-                    wordStateMachine.ResetToInitialState();
+                    wordStateMachine.Reset();
                     if (wordStateMachine.CanNavigateForward(startGamePoint.ToChar()) && !gameState.OccupationField[startGamePoint.Index])
                     {
                         TempGameState tempGameState = new TempGameState(gameState, startGamePoint, wordStateMachine);

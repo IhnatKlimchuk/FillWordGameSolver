@@ -32,7 +32,7 @@ namespace FillWordGameSolver
             this.gameOccupationField[currentPoint.Index] = true;
             this.GameInformation = initialGameState.GameInformation;
             this.wordStateMachine = wordStateMachine;
-            this.wordStateMachine.ResetToInitialState();
+            this.wordStateMachine.Reset();
             this.wordStateMachine.NavigateForward(initialPoint.ToChar());
         }
 

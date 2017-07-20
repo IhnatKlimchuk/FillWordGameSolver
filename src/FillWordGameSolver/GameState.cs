@@ -12,7 +12,7 @@ namespace FillWordGameSolver
 
         public ImmutableSortedSet<GameWord> Words { get; private set; }
 
-        public BitArray OccupationField { get; set; }
+        internal BitArray OccupationField { get; set; }
 
         public GameState(GameInformation gameInformation) : this(gameInformation, null)
         {

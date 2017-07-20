@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Xunit;
 
 namespace FillWordGameSolver.Tests
@@ -23,9 +24,14 @@ namespace FillWordGameSolver.Tests
                 'e', 'l', 'd'
             };
             GameInformation gameInfo = new GameInformation(gameField, 3, 3);
-            SimpleWordStateMachine wordStateMachine = new SimpleWordStateMachine(definedWords);
-            GameSolver gameSolver = new GameSolver(wordStateMachine, gameInfo);
-            GameSolution solution = gameSolver.SolveGame();
+            ConcurrentWordStateMachine concurrentWordStateMachine = new ConcurrentWordStateMachine();
+            concurrentWordStateMachine.AddWords("./Words/English.txt");
+            /*foreach (var word in definedWords)
+            {
+                concurrentWordStateMachine.AddWord(word);
+            }*/
+            ParallelGameSolver gameSolver = new ParallelGameSolver(concurrentWordStateMachine, gameInfo);
+            GameSolution solution = gameSolver.SolveGame(CancellationToken.None);
             Assert.True(solution.IsSolved);
 
             GameWord[] gameWords = new GameWord[]

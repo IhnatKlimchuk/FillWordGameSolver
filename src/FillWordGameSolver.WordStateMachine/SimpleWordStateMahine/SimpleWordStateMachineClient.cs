@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace FillWordGameSolver
+﻿namespace FillWordGameSolver
 {
-    public class SimpleWordStateMachine : IWordStateMachine
+    public class SimpleWordStateMachineClient : IWordStateMachine
     {
         private SimpleWordStateMachineState initialState;
         private SimpleWordStateMachineState currentState;
 
-        public SimpleWordStateMachine(string[] words)
+        public SimpleWordStateMachineClient(string[] words)
         {
             initialState = new SimpleWordStateMachineState(null);
             currentState = initialState;
@@ -63,7 +59,7 @@ namespace FillWordGameSolver
             currentState = currentState.letterStateDictionary[letter];
         }
 
-        public void ResetToInitialState()
+        public void Reset()
         {
             currentState = initialState;
         }
