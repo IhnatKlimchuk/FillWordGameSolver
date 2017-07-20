@@ -130,36 +130,29 @@ namespace FillWordGameSolver
         private void NavigateDown()
         {
             int newIndex = currentPoint.Index + GameInformation.HorizontalDimension;
-            occupationField[newIndex] = true;
-            var newPoint = new GamePoint(GameInformation, newIndex);
-            gamePoints.Push(newPoint);
-            currentPoint = newPoint;
-            wordStateMachine.NavigateForward(GameInformation.FieldLetters[newIndex]);
+            NavigationBase(newIndex);
         }
 
         private void NavigateLeft()
         {
             int newIndex = currentPoint.Index - 1;
-            occupationField[newIndex] = true;
-            var newPoint = new GamePoint(GameInformation, newIndex);
-            gamePoints.Push(newPoint);
-            currentPoint = newPoint;
-            wordStateMachine.NavigateForward(GameInformation.FieldLetters[newIndex]);
+            NavigationBase(newIndex);
         }
 
         private void NavigateRight()
         {
             int newIndex = currentPoint.Index + 1;
-            occupationField[newIndex] = true;
-            var newPoint = new GamePoint(GameInformation, newIndex);
-            gamePoints.Push(newPoint);
-            currentPoint = newPoint;
-            wordStateMachine.NavigateForward(GameInformation.FieldLetters[newIndex]);
+            NavigationBase(newIndex);
         }
 
         private void NavigateUp()
         {
             int newIndex = currentPoint.Index - GameInformation.HorizontalDimension;
+            NavigationBase(newIndex);
+        }
+
+        private void NavigationBase(int newIndex)
+        {
             occupationField[newIndex] = true;
             var newPoint = new GamePoint(GameInformation, newIndex);
             gamePoints.Push(newPoint);
